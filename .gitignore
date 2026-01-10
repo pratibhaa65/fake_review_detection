@@ -2,6 +2,7 @@
 # Datasets
 # --------------------
 raw_dataset.csv
+preprocessed_dataset.csv
 *.csv
 data/
 
