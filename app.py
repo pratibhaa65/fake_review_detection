@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from src.predict import predict_review
-from src.train import trainModel
+# from src.predict import predict_review
+# from src.train import trainModel
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Fake Review Detection API")
