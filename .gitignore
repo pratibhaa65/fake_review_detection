@@ -29,8 +29,8 @@ venv/
 # --------------------
 # ML Models & Artifacts
 # --------------------
-*.pkl
-*.joblib
+# *.pkl
+# *.joblib
 
 # --------------------
 # OS / Editor
