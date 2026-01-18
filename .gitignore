@@ -1,6 +1,4 @@
-# --------------------
 # Datasets
-# --------------------
 raw_dataset.csv
 preprocessed_dataset.csv
 *.csv
@@ -10,14 +8,10 @@ data/
 frontend
 src/
 
-# --------------------
 # Jupyter Notebook
-# --------------------
 .ipynb_checkpoints/
 
-# --------------------
 # Python
-# --------------------
 __pycache__/
 *.pyc
 *.pyo
@@ -26,15 +20,12 @@ __pycache__/
 .venv
 venv/
 
-# --------------------
 # ML Models & Artifacts
-# --------------------
 # *.pkl
 # *.joblib
 
-# --------------------
+
 # OS / Editor
-# --------------------
 .DS_Store
 Thumbs.db
 .idea/
