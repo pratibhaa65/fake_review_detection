@@ -7,7 +7,6 @@ preprocessed_dataset.csv
 *.xlsx
 *.xls
 data/
-frontend
 src/
 
 # --------------------
