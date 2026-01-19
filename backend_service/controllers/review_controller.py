@@ -1,8 +1,43 @@
 from database.db import SessionLocal
 from database.models import Review, Product
+import time
+import json
+import hashlib
+
+# In-memory store (persists while server is running)
+request_store = {}
+
+LIMIT = 2          # max same payload
+WINDOW = 60        # seconds
+
+def hash_payload(payload: dict) -> str:
+    payload_str = json.dumps(payload, sort_keys=True)
+    return hashlib.sha256(payload_str.encode()).hexdigest()
 
 
-def add_review(product_id, data):
+def get_client_ip(request):
+    return request.remote_addr
+
+def check_duplicate(ip: str, payload: dict):
+    payload_hash = hash_payload(payload)
+    key = f"{ip}:{payload_hash}"
+    now = time.time()
+
+    if key not in request_store:
+        request_store[key] = []
+
+    # remove expired timestamps
+    request_store[key] = [
+        t for t in request_store[key] if now - t < WINDOW
+    ]
+
+    if len(request_store[key]) >= LIMIT:
+        raise ValueError("Duplicate review detected from same IP")
+
+    request_store[key].append(now)
+
+
+def add_review(product_id, data, ip):
     if not data.get("review") or not data["review"].strip():
         raise ValueError("Review text is required")
 
@@ -10,8 +45,17 @@ def add_review(product_id, data):
     if rating is None or not (1 <= rating <= 5):
         raise ValueError("Rating must be between 1 and 5")
 
-    db = SessionLocal()
+    payload = {
+        "product_id": product_id,
+        "reviewer": data.get("reviewer", "").strip(),
+        "rating": rating,
+        "review": data["review"].strip(),
+    }
 
+    # 🔒 SAME AS YOUR NEXT.JS LOGIC
+    check_duplicate(ip, payload)
+
+    db = SessionLocal()
     try:
         product = db.query(Product).filter(Product.id == product_id).first()
         if not product:
@@ -19,9 +63,9 @@ def add_review(product_id, data):
 
         review = Review(
             product_id=product_id,
-            reviewer=data.get("reviewer", "").strip(),
+            reviewer=payload["reviewer"],
             rating=rating,
-            review=data["review"].strip()
+            review=payload["review"],
         )
 
         db.add(review)

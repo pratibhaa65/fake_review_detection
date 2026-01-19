@@ -7,7 +7,12 @@ review_bp = Blueprint("review_bp", __name__)
 @review_bp.route("/products/<int:product_id>/reviews", methods=["POST"])
 def add(product_id):
     try:
-        review = add_review(product_id, request.json)
+        ip = (
+            request.headers.get("X-Forwarded-For", "").split(",")[0]
+            or request.remote_addr
+        )
+
+        review = add_review(product_id, request.json, ip)
         return jsonify({"review_id": review.review_id, "message": "Review added"}), 201
 
     except ValueError as e:
