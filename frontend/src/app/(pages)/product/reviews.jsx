@@ -6,7 +6,7 @@ export default function ReviewForm({ productId }) {
   const [review, setReview] = useState({
     reviewer: "",
     rating: "",
-    comment: "",
+    review: "",
   });
 
   const router = useRouter();
@@ -15,15 +15,18 @@ export default function ReviewForm({ productId }) {
     e.preventDefault();
 
     try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, ...review }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: productId, ...review }),
+        },
+      );
 
       if (res.ok) {
         alert("Review added");
-        // setReview({ reviewer: "", rating: "", comment: "" });
+        setReview({ reviewer: "", rating: "", review: "" });
         router.refresh();
       } else {
         const errorData = await res.json();
@@ -52,10 +55,10 @@ export default function ReviewForm({ productId }) {
       />
 
       <textarea
-        placeholder="Comment"
-        onChange={(e) => setReview({ ...review, comment: e.target.value })}
+        placeholder="Review"
+        onChange={(e) => setReview({ ...review, review: e.target.value })}
         className="border border-gray-600 p-2 rounded-xl"
-        value={review.comment}
+        value={review.review}
       />
 
       <button
