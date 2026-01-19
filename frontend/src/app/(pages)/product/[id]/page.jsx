@@ -8,9 +8,7 @@ const Page = async ({ params }) => {
   });
   const data = await res.json();
 
-  const product = data.products.find(
-    (product) => product.id.toString() === id
-  );
+  const product = data.products.find((product) => product.id.toString() === id);
 
   if (!product) {
     return <p className="p-6 text-red-500">Product not found</p>;
@@ -40,17 +38,13 @@ const Page = async ({ params }) => {
             {product.reviews.map((review, index) => (
               <li key={index} className="text-sm">
                 <span className="font-medium">{review.reviewer}</span>{" "}
-                <span className="text-gray-500">
-                  ({review.rating}/5)⭐
-                </span>
+                <span className="text-gray-500">({review.rating}/5)⭐</span>
                 <p className="text-gray-600">{review.comment}</p>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">
-            No reviews yet.
-          </p>
+          <p className="text-sm text-gray-500">No reviews yet.</p>
         )}
       </div>
 
