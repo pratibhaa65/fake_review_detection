@@ -12,7 +12,7 @@ def create_product(data):
         raise ValueError("Product category is required")
 
     # Price validation
-    price = data.get("price", 0)
+    price = int(data.get("price", 0))
     if price < 0:
         raise ValueError("Price cannot be negative")
 
