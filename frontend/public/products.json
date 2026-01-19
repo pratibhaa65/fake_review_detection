@@ -67,8 +67,28 @@
         },
         {
           "reviewer": "Ram",
-          "rating": 1,
-          "comment": "Hawa"
+          "rating": 5,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 123,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 123,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "thik xa"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "thik xa"
         }
       ]
     },
@@ -92,6 +112,25 @@
       "description": "Thik xa ta",
       "price": "200",
       "category": "Nice xa",
+      "reviews": [
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "Nice "
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 1,
+          "comment": "Naramro"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Momo",
+      "description": "Thik thiik",
+      "price": "500",
+      "category": "Food",
       "reviews": []
     }
   ]
