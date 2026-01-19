@@ -16,7 +16,7 @@ export default function ReviewForm({ productId }) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reviews`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

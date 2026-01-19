@@ -15,7 +15,7 @@ const CreateProduct = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/products`,
         {
           method: "POST",
           headers: {
