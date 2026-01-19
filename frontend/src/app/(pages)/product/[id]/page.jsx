@@ -3,9 +3,12 @@ import ReviewForm from "../reviews";
 const Page = async ({ params }) => {
   const { id } = await params;
 
-  const res = await fetch("http://localhost:3000/products.json", {
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+    {
+      cache: "no-store",
+    },
+  );
   const data = await res.json();
 
   const product = data.products.find((product) => product.id.toString() === id);
@@ -39,7 +42,7 @@ const Page = async ({ params }) => {
               <li key={index} className="text-sm">
                 <span className="font-medium">{review.reviewer}</span>{" "}
                 <span className="text-gray-500">({review.rating}/5)⭐</span>
-                <p className="text-gray-600">{review.comment}</p>
+                <p className="text-gray-600">{review.review}</p>
               </li>
             ))}
           </ul>

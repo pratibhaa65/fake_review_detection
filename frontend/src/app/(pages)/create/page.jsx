@@ -14,13 +14,16 @@ const CreateProduct = () => {
     const productData = { name, description, price, category };
 
     try {
-      const response = await fetch("api/products", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productData),
         },
-        body: JSON.stringify(productData),
-      });
+      );
 
       if (response.ok) {
         alert("Product created successfully!");
