@@ -1,10 +1,10 @@
 from flask import Flask, render_template, jsonify
 from routes.product_routes import product_bp
 from routes.review_routes import review_bp
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
-
     # Register Blueprints
     app.register_blueprint(product_bp)
     app.register_blueprint(review_bp)
@@ -47,4 +47,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
+    CORS(app)
     app.run(debug=True)
