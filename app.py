@@ -31,8 +31,6 @@ def predict():
     return {"prediction": result}
 
 
-
-
 # @app.get("/train")
 # def train():
 #     result = trainModel()

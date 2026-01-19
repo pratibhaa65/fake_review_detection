@@ -7,8 +7,6 @@ preprocessed_dataset.csv
 *.xlsx
 *.xls
 data/
-frontend
-src/
 
 # --------------------
 # Jupyter Notebook
@@ -29,8 +27,8 @@ venv/
 # --------------------
 # ML Models & Artifacts
 # --------------------
-*.pkl
-*.joblib
+# *.pkl
+# *.joblib
 
 # --------------------
 # OS / Editor

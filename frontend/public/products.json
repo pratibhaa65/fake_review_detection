@@ -1,0 +1,137 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Smartphone",
+      "description": "A latest model smartphone with advanced features.",
+      "category": "Electronics",
+      "price": 30000,
+      "reviews": [
+        {
+          "reviewer": "Alice",
+          "rating": 5,
+          "comment": "Great product!"
+        },
+        {
+          "reviewer": "Bob",
+          "rating": 4,
+          "comment": "Good value for money."
+        },
+        {
+          "reviewer": "Bishal",
+          "rating": 5,
+          "comment": "Nice"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Rice Cooker",
+      "description": "A high-quality rice cooker for perfect rice every time.",
+      "price": 5000,
+      "category": "Appliances",
+      "reviews": [
+        {
+          "reviewer": "Charlie",
+          "rating": 3,
+          "comment": "Average quality."
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 4,
+          "comment": "This is very nice"
+        },
+        {
+          "reviewer": "Sam",
+          "rating": 5,
+          "comment": "Very Nice"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Mathematical Book",
+      "description": "An in-depth look into advanced mathematical concepts.",
+      "price": 600,
+      "category": "Books",
+      "reviews": [
+        {
+          "reviewer": "David",
+          "rating": 2,
+          "comment": "Not satisfied with the product."
+        },
+        {
+          "reviewer": "Eve",
+          "rating": 4,
+          "comment": "Pretty decent for the price."
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 123,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 123,
+          "comment": "123"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "thik xa"
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "thik xa"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "OK ",
+      "description": "ok",
+      "price": "1231",
+      "category": "ok",
+      "reviews": [
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "Nice"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Momo",
+      "description": "Thik xa ta",
+      "price": "200",
+      "category": "Nice xa",
+      "reviews": [
+        {
+          "reviewer": "Ram",
+          "rating": 5,
+          "comment": "Nice "
+        },
+        {
+          "reviewer": "Ram",
+          "rating": 1,
+          "comment": "Naramro"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Momo",
+      "description": "Thik thiik",
+      "price": "500",
+      "category": "Food",
+      "reviews": []
+    }
+  ]
+}
