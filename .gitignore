@@ -4,9 +4,8 @@ preprocessed_dataset.csv
 *.csv
 *.xlsx
 *.xls
-data/
-frontend
-src/
+dataset/
+joblib/
 
 # Jupyter Notebook
 .ipynb_checkpoints/
@@ -18,6 +17,7 @@ __pycache__/
 *.pyd
 .env
 .venv
+.git
 venv/
 
 # ML Models & Artifacts
