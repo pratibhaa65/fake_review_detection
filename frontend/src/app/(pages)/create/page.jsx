@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const CreateProduct = () => {
   const [name, setName] = useState("");
@@ -9,9 +9,32 @@ const CreateProduct = () => {
   const [category, setCategory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // UI-only states
+  const [categories, setCategories] = useState([]);
+  const [useCustomCategory, setUseCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
+
+  /* ---------- FETCH CATEGORIES (UI only) ---------- */
+  useEffect(() => {
+    fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/categories`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
+
   async function handleSubmit() {
     setIsSubmitting(true);
-    const productData = { name, description, price, category };
+
+    const finalCategory = useCustomCategory ? customCategory : category;
+    const productData = {
+      name,
+      description,
+      price,
+      category: finalCategory,
+    };
 
     try {
       const response = await fetch(
@@ -22,7 +45,7 @@ const CreateProduct = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(productData),
-        },
+        }
       );
 
       if (response.ok) {
@@ -31,6 +54,8 @@ const CreateProduct = () => {
         setDescription("");
         setPrice("");
         setCategory("");
+        setCustomCategory("");
+        setUseCustomCategory(false);
       } else {
         alert("Failed to create product.");
       }
@@ -43,85 +68,104 @@ const CreateProduct = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Create New Product</h1>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-6">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-xl p-8">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Create New Product
+        </h1>
 
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 mb-1"
-            htmlFor="name"
+        <div className="space-y-5">
+          {/* Product Name */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Product Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              required
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter product name"
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Category
+            </label>
+
+            {categories.length > 0 && !useCustomCategory ? (
+              <select
+                value={category}
+                onChange={(e) => {
+                  if (e.target.value === "__new__") {
+                    setUseCustomCategory(true);
+                    setCategory("");
+                  } else {
+                    setCategory(e.target.value);
+                  }
+                }}
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">Select category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value="__new__">➕ Add new category</option>
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter new category"
+              />
+            )}
+          </div>
+
+          {/* Price */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Price
+            </label>
+            <input
+              type="number"
+              value={price}
+              required
+              onChange={(e) => setPrice(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Enter price"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Description
+            </label>
+            <textarea
+              rows="4"
+              value={description}
+              required
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500"
+              placeholder="Short product description"
+            />
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-lg font-semibold transition disabled:opacity-50"
           >
-            Product Name
-          </label>
-          <input
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="text"
-            id="name"
-            value={name}
-            required
-            onChange={(e) => setName(e.target.value)}
-          />
+            {isSubmitting ? "Creating..." : "Create Product"}
+          </button>
         </div>
-
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 mb-1"
-            htmlFor="description"
-          >
-            Description
-          </label>
-          <textarea
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            id="description"
-            rows="3"
-            value={description}
-            required
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 mb-1"
-            htmlFor="price"
-          >
-            Price
-          </label>
-          <input
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="number"
-            id="price"
-            value={price}
-            required
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label
-            className="block text-sm font-medium text-gray-700 mb-1"
-            htmlFor="category"
-          >
-            Category
-          </label>
-          <input
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            type="text"
-            id="category"
-            value={category}
-            required
-            onChange={(e) => setCategory(e.target.value)}
-          />
-        </div>
-
-        <button
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-md transition-colors disabled:bg-gray-400"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Creating..." : "Create Product"}
-        </button>
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ def get_product_with_reviews(product_id):
         if not product:
             raise ValueError("Product not found")
 
-        return {
+        return [{
             "id": product.id,
             "name": product.name,
             "description": product.description,
@@ -64,7 +64,7 @@ def get_product_with_reviews(product_id):
                 }
                 for r in product.reviews
             ]
-        }
+        }]
 
     finally:
         db.close()
@@ -88,3 +88,45 @@ def delete_product(product_id):
 
     finally:
         db.close()
+        
+        
+        
+        
+
+
+def get_categories():
+    db = SessionLocal()
+    try:
+        categories = (
+            db.query(Product.category)
+            .distinct()
+            .filter(Product.category.isnot(None))
+            .all()
+        )
+
+        # Convert list of tuples → list of strings
+        return [c[0] for c in categories]
+
+    finally:
+        db.close()
+
+
+def get_all_products():
+    db = SessionLocal()
+    try:
+        products = db.query(Product).all()
+
+        return [
+            {
+                "id": p.id,
+                "name": p.name,
+                "description": p.description,
+                "category": p.category,
+                "price": p.price,
+            }
+            for p in products
+        ]
+
+    finally:
+        db.close()
+

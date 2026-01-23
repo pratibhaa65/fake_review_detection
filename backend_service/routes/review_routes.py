@@ -16,10 +16,10 @@ def add(product_id):
         return jsonify({"review_id": review.review_id, "message": "Review added"}), 201
 
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-
-
-
+        return jsonify({
+            "message": str(e),
+            "type": "duplicate_review"
+        }), 429
 
 @review_bp.route("/reviews/<int:review_id>", methods=["DELETE"])
 def remove(review_id):

@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -9,63 +10,105 @@ export default function ReviewForm({ productId }) {
     review: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reviews`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${productId}/reviews`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: productId, ...review }),
+          body: JSON.stringify(review),
         },
       );
 
-      if (res.ok) {
-        alert("Review added");
-        setReview({ reviewer: "", rating: "", review: "" });
-        router.refresh();
-      } else {
-        const errorData = await res.json();
-        alert(`Error: ${errorData.message}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          setError(data.message || "You already submitted this review recently. Please wait.");
+        } else {
+          setError(data.message || "Failed to submit review.");
+        }
+        return;
       }
-    } catch (error) {
-      alert("An unexpected error occurred. Please try again later.");
+
+      // ✅ Success
+      setReview({ reviewer: "", rating: "", review: "" });
+      router.refresh();
+    } catch (err) {
+      setError("Server not reachable. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-1/2">
-      <input
-        placeholder="Name"
-        onChange={(e) => setReview({ ...review, reviewer: e.target.value })}
-        value={review.reviewer}
-        className="border border-gray-600 p-2 rounded-xl"
-      />
+    <form onSubmit={handleSubmit} className="max-w-md space-y-4">
+      {/* Name */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Your Name</label>
+        <input
+          type="text"
+          required
+          value={review.reviewer}
+          onChange={(e) => setReview({ ...review, reviewer: e.target.value })}
+          className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+          placeholder="John Doe"
+        />
+      </div>
 
-      <input
-        type="number"
-        placeholder="Rating"
-        onChange={(e) => setReview({ ...review, rating: e.target.value })}
-        className="border border-gray-600 p-2 rounded-xl"
-        value={review.rating}
-      />
+      {/* Rating */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Rating</label>
+        <select
+          required
+          value={review.rating}
+          onChange={(e) => setReview({ ...review, rating: e.target.value })}
+          className="w-full border rounded-lg px-3 py-2"
+        >
+          <option value="">Select rating</option>
+          {[1, 2, 3, 4, 5].map((r) => (
+            <option key={r} value={r}>
+              {r} ⭐
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <textarea
-        placeholder="Review"
-        onChange={(e) => setReview({ ...review, review: e.target.value })}
-        className="border border-gray-600 p-2 rounded-xl"
-        value={review.review}
-      />
+      {/* Review */}
+      <div>
+        <label className="block text-sm font-medium mb-1">Review</label>
+        <textarea
+          rows="4"
+          required
+          value={review.review}
+          onChange={(e) => setReview({ ...review, review: e.target.value })}
+          className="w-full border rounded-lg px-3 py-2"
+          placeholder="Write your experience..."
+        />
+      </div>
 
+      {error && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Submit */}
       <button
         type="submit"
-        className="border text-left border-gray-600 p-2 rounded-xl"
+        disabled={loading}
+        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
       >
-        Submit Review
+        {loading ? "Submitting..." : "Submit Review"}
       </button>
     </form>
   );

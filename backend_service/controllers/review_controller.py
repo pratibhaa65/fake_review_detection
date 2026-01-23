@@ -4,45 +4,58 @@ import time
 import json
 import hashlib
 
-# In-memory store (persists while server is running)
+# ---------------- CONFIG ----------------
+WINDOW = 60          # seconds
+MAX_SAME_PRODUCT = 4 # reviews per product per IP
+MAX_SAME_PAYLOAD = 2 # identical payload allowed
+
+# In-memory store
 request_store = {}
 
-LIMIT = 2          # max same payload
-WINDOW = 60        # seconds
-
+# ---------------- UTILS ----------------
 def hash_payload(payload: dict) -> str:
     payload_str = json.dumps(payload, sort_keys=True)
     return hashlib.sha256(payload_str.encode()).hexdigest()
 
 
-def get_client_ip(request):
-    return request.remote_addr
-
-def check_duplicate(ip: str, payload: dict):
-    payload_hash = hash_payload(payload)
-    key = f"{ip}:{payload_hash}"
+def clean_store(key):
     now = time.time()
-
-    if key not in request_store:
-        request_store[key] = []
-
-    # remove expired timestamps
     request_store[key] = [
-        t for t in request_store[key] if now - t < WINDOW
+        t for t in request_store.get(key, []) if now - t < WINDOW
     ]
 
-    if len(request_store[key]) >= LIMIT:
-        raise ValueError("Duplicate review detected from same IP")
 
-    request_store[key].append(now)
+def track(key):
+    clean_store(key)
+    request_store.setdefault(key, []).append(time.time())
 
 
+def check_limits(ip: str, payload: dict):
+    product_key = f"{ip}:product:{payload['product_id']}"
+    payload_key = f"{ip}:payload:{hash_payload(payload)}"
+
+    clean_store(product_key)
+    clean_store(payload_key)
+
+    # 🚫 One review per product
+    if len(request_store.get(product_key, [])) >= MAX_SAME_PRODUCT:
+        raise ValueError("You have already reviewed this product")
+
+    # 🚫 Copy-paste spam
+    if len(request_store.get(payload_key, [])) >= MAX_SAME_PAYLOAD:
+        raise ValueError("Duplicate review detected")
+
+    track(product_key)
+    track(payload_key)
+
+
+# ---------------- MAIN LOGIC ----------------
 def add_review(product_id, data, ip):
     if not data.get("review") or not data["review"].strip():
         raise ValueError("Review text is required")
 
-    rating = data.get("rating")
-    if rating is None or not (1 <= rating <= 5):
+    rating = int(data.get("rating", 0))
+    if not (1 <= rating <= 5):
         raise ValueError("Rating must be between 1 and 5")
 
     payload = {
@@ -52,8 +65,7 @@ def add_review(product_id, data, ip):
         "review": data["review"].strip(),
     }
 
-    # 🔒 SAME AS YOUR NEXT.JS LOGIC
-    check_duplicate(ip, payload)
+    check_limits(ip, payload)
 
     db = SessionLocal()
     try:
@@ -71,7 +83,6 @@ def add_review(product_id, data, ip):
         db.add(review)
         db.commit()
         db.refresh(review)
-
         return review
 
     except Exception as e:
@@ -80,6 +91,7 @@ def add_review(product_id, data, ip):
 
     finally:
         db.close()
+
 
 
 def delete_review(review_id):

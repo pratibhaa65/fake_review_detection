@@ -1,7 +1,12 @@
 from flask import Blueprint, request, jsonify
-from controllers.product_controller import create_product, get_product_with_reviews, delete_product
+from controllers.product_controller import create_product, get_product_with_reviews, delete_product, get_categories, get_all_products
 
 product_bp = Blueprint("product_bp", __name__)
+
+@product_bp.route("/products", methods=["GET"])
+def list_products():
+    products = get_all_products()
+    return jsonify(products), 200
 
 
 @product_bp.route("/products", methods=["POST"])
@@ -33,4 +38,9 @@ def remove(product_id):
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+
+@product_bp.route("/categories", methods=["GET"])
+def categories():
+    categories = get_categories()
+    return jsonify(categories), 200
 

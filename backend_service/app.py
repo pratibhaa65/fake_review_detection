@@ -5,6 +5,8 @@ from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
+    
+    CORS(app, supports_credentials=True)
     # Register Blueprints
     app.register_blueprint(product_bp)
     app.register_blueprint(review_bp)
@@ -47,5 +49,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    CORS(app)
+    # CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
     app.run(debug=True)
