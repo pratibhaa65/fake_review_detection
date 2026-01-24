@@ -6,7 +6,7 @@ import hashlib
 
 # ---------------- CONFIG ----------------
 WINDOW = 60          # seconds
-MAX_SAME_PRODUCT = 4 # reviews per product per IP
+MAX_SAME_PRODUCT = 2 # reviews per IP per minute
 MAX_SAME_PAYLOAD = 2 # identical payload allowed
 
 # In-memory store
@@ -31,21 +31,21 @@ def track(key):
 
 
 def check_limits(ip: str, payload: dict):
-    product_key = f"{ip}:product:{payload['product_id']}"
+    ip = f"{ip}"
     payload_key = f"{ip}:payload:{hash_payload(payload)}"
 
-    clean_store(product_key)
+    clean_store(ip)
     clean_store(payload_key)
 
-    # 🚫 One review per product
-    if len(request_store.get(product_key, [])) >= MAX_SAME_PRODUCT:
-        raise ValueError("You have already reviewed this product")
+    # 🚫 Three review per ip per minute
+    if len(request_store.get(ip, [])) >= MAX_SAME_PRODUCT:
+        raise ValueError("Mutiple reviews detected . Please try again later!")
 
     # 🚫 Copy-paste spam
     if len(request_store.get(payload_key, [])) >= MAX_SAME_PAYLOAD:
         raise ValueError("Duplicate review detected")
 
-    track(product_key)
+    track(ip)
     track(payload_key)
 
 
