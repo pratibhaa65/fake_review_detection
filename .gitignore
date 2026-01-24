@@ -8,7 +8,6 @@ preprocessed_dataset.csv
 *.xls
 data/
 src/
-frontend/
 
 # --------------------
 # Jupyter Notebook
