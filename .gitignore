@@ -1,41 +1,35 @@
-# --------------------
 # Datasets
-# --------------------
 raw_dataset.csv
 preprocessed_dataset.csv
 *.csv
 *.xlsx
 *.xls
-data/
-frontend
-src/
+dataset/
+joblib/
 
-# --------------------
 # Jupyter Notebook
-# --------------------
 .ipynb_checkpoints/
 
-# --------------------
 # Python
-# --------------------
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .env
 .venv
+.git
 venv/
 
-# --------------------
 # ML Models & Artifacts
-# --------------------
-# *.pkl
-# *.joblib
+*.pkl
+*.joblib
 
-# --------------------
+
 # OS / Editor
-# --------------------
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+
+
+pkl.ipynb
