@@ -3,41 +3,52 @@ from database.models import Product
 
 
 def create_product(data):
-    # Product name validation
-    if not data.get("name") or not data["name"].strip():
+    if not data:
+        raise ValueError("No data provided")
+
+    name = data.get("name", "").strip()
+    category = data.get("category", "").strip()
+    description = data.get("description", "").strip()
+    price = data.get("price")
+
+    if not name:
         raise ValueError("Product name is required")
 
-    # Category validation
-    if not data.get("category") or not data["category"].strip():
+    if not category:
         raise ValueError("Product category is required")
 
-    # Price validation
-    price = int(data.get("price", 0))
+    if price is None or str(price).strip() == "":
+        raise ValueError("Price is required")
+
+    try:
+        price = int(price)
+    except:
+        raise ValueError("Price must be a valid number")
+
     if price < 0:
         raise ValueError("Price cannot be negative")
 
     db = SessionLocal()
-
     try:
         product = Product(
-            name=data["name"].strip(),
-            description=data.get("description", "").strip(),
-            category=data["category"].strip(),
+            name=name,
+            description=description,
+            category=category,
             price=price
         )
 
         db.add(product)
         db.commit()
         db.refresh(product)
-
         return product
 
     except Exception as e:
         db.rollback()
-        raise e
+        raise ValueError(str(e))
 
     finally:
         db.close()
+
 
 
 def get_product_with_reviews(product_id):
@@ -49,12 +60,12 @@ def get_product_with_reviews(product_id):
         if not product:
             raise ValueError("Product not found")
 
-        return [{
+        return {
             "id": product.id,
             "name": product.name,
-            "description": product.description,
             "category": product.category,
             "price": product.price,
+            "description": product.description,
             "reviews": [
                 {
                     "review_id": r.review_id,
@@ -64,7 +75,7 @@ def get_product_with_reviews(product_id):
                 }
                 for r in product.reviews
             ]
-        }]
+        }
 
     finally:
         db.close()
@@ -115,18 +126,16 @@ def get_all_products():
     db = SessionLocal()
     try:
         products = db.query(Product).all()
-
         return [
             {
                 "id": p.id,
                 "name": p.name,
-                "description": p.description,
                 "category": p.category,
                 "price": p.price,
+                "description": p.description
             }
             for p in products
         ]
-
     finally:
         db.close()
 

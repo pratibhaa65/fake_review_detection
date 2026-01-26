@@ -16,19 +16,31 @@ const CreateProduct = () => {
 
   /* ---------- FETCH CATEGORIES (UI only) ---------- */
   useEffect(() => {
-    fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/categories`)
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/categories`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setCategories(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        } else {
+          setUseCustomCategory(true); // 🔥 IMPORTANT
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        setUseCustomCategory(true); // fallback
+      });
   }, []);
 
   async function handleSubmit() {
     setIsSubmitting(true);
 
-    const finalCategory = useCustomCategory ? customCategory : category;
+    const finalCategory = useCustomCategory
+      ? customCategory.trim()
+      : category.trim();
+    if (!finalCategory) {
+      alert("Category is required");
+      setIsSubmitting(false);
+      return;
+    }
     const productData = {
       name,
       description,
@@ -45,7 +57,7 @@ const CreateProduct = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(productData),
-        }
+        },
       );
 
       if (response.ok) {
@@ -57,7 +69,8 @@ const CreateProduct = () => {
         setCustomCategory("");
         setUseCustomCategory(false);
       } else {
-        alert("Failed to create product.");
+        const data = await response.json();
+        alert(data.message || "Failed to create product.");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -92,9 +105,7 @@ const CreateProduct = () => {
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Category
-            </label>
+            <label className="block text-sm font-medium mb-1">Category</label>
 
             {categories.length > 0 && !useCustomCategory ? (
               <select
@@ -130,9 +141,7 @@ const CreateProduct = () => {
 
           {/* Price */}
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Price
-            </label>
+            <label className="block text-sm font-medium mb-1">Price</label>
             <input
               type="number"
               value={price}

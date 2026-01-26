@@ -32,7 +32,9 @@ export default function ReviewForm({ productId }) {
       const data = await res.json();
 
       if (!res.ok) {
-        if (res.status === 429) {
+        if (res.status === 403) {
+          setError(data.message || "Review detected as fake.");
+        } else if (res.status === 429) {
           setError(data.message || "You already submitted this review recently. Please wait.");
         } else {
           setError(data.message || "Failed to submit review.");
