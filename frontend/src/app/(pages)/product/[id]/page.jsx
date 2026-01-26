@@ -11,9 +11,11 @@ const Page = async ({ params }) => {
   if (!res.ok) {
     return <p className="p-6 text-red-500">Failed to load product</p>;
   }
-  const data = await res.json();
+  const product = await res.json();
 
-  const product = data.find((product) => product.id.toString() === id);
+  if (!product || product.error) {
+    return <p className="p-6 text-red-500">Product not found</p>;
+  }
 
   return <ProductClient product={product} />;
 };

@@ -13,13 +13,21 @@ def add(product_id):
         )
 
         review = add_review(product_id, request.json, ip)
-        return jsonify({"review_id": review.review_id, "message": "Review added"}), 201
+        return jsonify({"review_id":  review["review_id"], "message": "Review added successfully"}), 201
 
     except ValueError as e:
-        return jsonify({
-            "message": str(e),
-            "type": "duplicate_review"
-        }), 429
+        if "fake" in str(e).lower():
+            return jsonify({
+                "message": str(e),
+                "type": "fake_review"
+            }), 403
+        else:
+            return jsonify({
+                "message": str(e),
+                "type": "duplicate_review"
+            }), 429
+        
+
 
 @review_bp.route("/reviews/<int:review_id>", methods=["DELETE"])
 def remove(review_id):
