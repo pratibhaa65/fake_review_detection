@@ -8,13 +8,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse import hstack
 import contractions
 import spacy
-
 import os
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 JOBLIB_DIR = os.path.join(BASE_DIR, "joblib")
-
-
+THRESHOLD = 0.55  # production sweet spot
 
 # Classifier
 clf = joblib.load(os.path.join(JOBLIB_DIR, "logistic_fake_review_model.pkl"))
@@ -27,10 +25,12 @@ lemm_tfidf = joblib.load(os.path.join(JOBLIB_DIR, "lemm_tfidf_vectorizer.pkl"))
 lemm_nn = joblib.load(os.path.join(JOBLIB_DIR, "lemm_nn_model.pkl"))
 
 # Category centroids
-category_centroids = joblib.load(os.path.join(JOBLIB_DIR, "category_centroids.pkl"))
+all_category_centroids = joblib.load(os.path.join(JOBLIB_DIR, "all_category_centroids.pkl"))
 
 # Numeric feature order
 numeric_feature_order = joblib.load(os.path.join(JOBLIB_DIR, "numeric_feature_order.pkl"))
+
+numeric_scaler = joblib.load(os.path.join(JOBLIB_DIR, "numeric_scaler.pkl"))
 
 # NLP tools
 sia = SentimentIntensityAnalyzer()
@@ -43,23 +43,19 @@ def capital_letter_ratio(text):
         return 0.0
     return sum(1 for c in letters if c.isupper()) / len(letters)
 
-
 def punctuation_ratio(text):
     if not text:
         return 0.0
     return len(re.findall(r"[^\w\s]", text)) / len(text)
 
-
 def repetition_score(text):
-    words = re.findall(r"\b\w+\b", text.lower())
+    words = re.findall(r'\b\w+\b', text.lower())
     if not words:
         return 0.0
     return 1 - len(set(words)) / len(words)
 
-
 def expand_contractions(text):
     return contractions.fix(text) if isinstance(text, str) else ""
-
 
 def clean_text(text):
     text = text.lower()
@@ -68,7 +64,6 @@ def clean_text(text):
     text = re.sub(r"[^a-z\s]", "", text)
     return re.sub(r"\s+", " ", text).strip()
 
-
 def adjective_ratio(text):
     tokens = word_tokenize(text)
     if not tokens:
@@ -76,27 +71,16 @@ def adjective_ratio(text):
     tags = pos_tag(tokens)
     return sum(1 for _, t in tags if t.startswith("JJ")) / len(tokens)
 
-
 def sentiment_score(text):
     return sia.polarity_scores(text)["compound"] if text else 0.0
 
-
-def rating_polarity(r):
-    if r >= 4:
-        return 1
-    if r <= 2:
-        return -1
-    return 0
-
-
 def rating_sentiment_mismatch(sentiment, rating):
-    rp = rating_polarity(rating)
-    if rp == 1 and sentiment < -0.2:
-        return 1
-    if rp == -1 and sentiment > 0.2:
-        return 1
-    return 0
-
+    # """
+    # Continuous disagreement between rating and sentiment
+    # Output range ≈ [0, 2]
+    # """
+    rating_norm = (rating - 3) / 2   # 1→-1, 3→0, 5→1
+    return abs(rating_norm - sentiment)
 
 def lemmatize(text):
     doc = nlp(text)
@@ -107,26 +91,28 @@ def raw_review_similarity(text):
     vec = raw_tfidf.transform([text])
     distances, _ = raw_nn.kneighbors(vec, n_neighbors=5)
     sims = 1 - distances
-    return sims[0].max()
-
+    return float(np.max(sims[0][1:]))
+   
 
 def lemm_review_similarity(text):
     vec = lemm_tfidf.transform([text])
     distances, _ = lemm_nn.kneighbors(vec, n_neighbors=5)
     sims = 1 - distances
-    return sims[0].max()
+    return float(np.max(sims[0][1:]))
 
 
-def category_consistency(text, category):
-    if category not in category_centroids:
-        return 0.0
-    vec = lemm_tfidf.transform([text])
-    centroid = category_centroids[category]
-    return cosine_similarity(vec, centroid)[0][0]
+def category_consistency(text):
+    vec = lemm_tfidf.transform([text])  # (1, n_features)
+
+    # similarity with ALL category centroids
+    sims = cosine_similarity(vec, all_category_centroids)
+
+    # best matching category similarity
+    return float(np.max(sims))
+
 
 
 def predict_review(review, rating, category):
-    print(category);
     # ---------- RAW ----------
     text_length = len(str(review))
     cap_ratio = capital_letter_ratio(review)
@@ -148,35 +134,43 @@ def predict_review(review, rating, category):
     # ---------- STATEFUL ----------
     raw_sim = raw_review_similarity(review)
     lemm_sim = lemm_review_similarity(lemm)
-    cat_score = category_consistency(lemm, category)
+    cat_score = category_consistency(lemm)
+    category_novelty = 1 - cat_score
 
-    # ---------- NUMERIC VECTOR ----------
+    # ---------- NUMERIC ----------
     numeric_dict = {
-        "text_length": text_length,
-        "capital_ratio": cap_ratio,
-        "punctuation_ratio": punct_ratio,
-        "adjective_ratio": adj_ratio,
-        "sentiment_score": sent_score,
-        "rating_sentiment_mismatch": mismatch,
-        "raw_review_similarity": raw_sim,
-        "category_consistency_score": cat_score,
-        "review_similarity_score": lemm_sim,
-        "repetition_score": rep_score,
-        "is_extreme_rating": extreme,
+        'text_length': text_length,
+        'capital_ratio': cap_ratio,
+        'punctuation_ratio': punct_ratio,
+        'adjective_ratio': adj_ratio,
+        'sentiment_score': sent_score,
+        'rating_sentiment_mismatch': mismatch,
+        'raw_review_similarity': raw_sim,
+        'category_consistency_score': cat_score,
+        'category_novelty_score': category_novelty,
+        'review_similarity_score': lemm_sim,
+        'repetition_score': rep_score,
+        'is_extreme_rating': extreme
     }
 
     numeric_values = np.array([[numeric_dict[f] for f in numeric_feature_order]])
 
-    # ---------- FINAL MATRIX ----------
+    # SCALE numeric features
+    numeric_values_scaled = numeric_scaler.transform(numeric_values)
     X_text = lemm_tfidf.transform([lemm])
-    X_final = hstack([X_text, numeric_values])
+    X_final = hstack([X_text, numeric_values_scaled])
+
+    
+
 
     # ---------- PREDICTION ----------
-    pred = clf.predict(X_final)[0]
     prob = clf.predict_proba(X_final)[0, 1]
+    pred = 1 if prob >= THRESHOLD else 0
 
     return {
         "prediction": "Genuine" if pred == 1 else "Fake",
         "probability": float(prob),
-        "features": numeric_dict,
+        "features": numeric_dict
     }
+
+
