@@ -77,10 +77,11 @@ def sentiment_score(text):
 def rating_sentiment_mismatch(sentiment, rating):
     # """
     # Continuous disagreement between rating and sentiment
-    # Output range ≈ [0, 2]
+    # Output range ≈ [0, 1]
     # """
     rating_norm = (rating - 3) / 2   # 1→-1, 3→0, 5→1
-    return abs(rating_norm - sentiment)
+    mismatch = abs(rating_norm - sentiment)
+    return mismatch / 2
 
 def lemmatize(text):
     doc = nlp(text)
