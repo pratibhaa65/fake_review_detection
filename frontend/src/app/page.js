@@ -20,7 +20,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+    <main className="min-h-screen bg-linear-to-b from-slate-900 to-slate-800 text-white">
 
       {/* ================= HERO SECTION ================= */}
       <section className="max-w-6xl mx-auto px-6 py-24 text-center">
